@@ -192,7 +192,7 @@ python search_analyzer.py -t "https://target.com" --terms search_terms_massive.t
 
 Rank   Term                    Avg Time    vs Baseline
 ────────────────────────────────────────────────────────
-1      smartphone recensione   2.45s        8.2x ☠️  LETHAL
+1      smartphone               2.45s        8.2x ☠️  LETHAL
 2      比较                     1.89s        6.3x 🩸 HEAVY
 3      обзор смартфон          1.52s        5.1x 🩸 HEAVY
 ```
