@@ -244,7 +244,7 @@ python wpstabber_win.py -t "https://target.com" --no-cookies --search-file searc
 
 **Languages:** 🇬🇧 EN · 🇨🇳 ZH · 🇪🇸 ES · 🇮🇳 HI · 🇸🇦 AR · 🇧🇷 PT · 🇷🇺 RU · 🇯🇵 JA · 🇫🇷 FR · 🇩🇪 DE · 🇮🇹 IT
 
-## Adaptive Mode (NEW)
+## Adaptive Mode
 
 When rate limited by Cloudflare (429/529), the tool can automatically scale down requests and ramp back up when the limit lifts.
 
