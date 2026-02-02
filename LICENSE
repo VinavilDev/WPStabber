@@ -19,3 +19,54 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+================================================================================
+                              LEGAL DISCLAIMER
+================================================================================
+
+This software is intended for AUTHORIZED SECURITY TESTING ONLY.
+
+By using this software, you acknowledge and agree that:
+
+1. AUTHORIZATION REQUIRED
+   You have explicit written permission to test the target systems. Testing
+   systems without authorization is a criminal offense in most jurisdictions.
+
+2. LEGAL COMPLIANCE
+   Unauthorized use against systems you do not own or have permission to test
+   is ILLEGAL and may violate computer crime laws including but not limited to:
+   
+   - Computer Fraud and Abuse Act (CFAA) - United States
+   - Computer Misuse Act 1990 - United Kingdom
+   - Strafgesetzbuch §202a-c - Germany
+   - Loi Godfrain - France
+   - Similar laws in other jurisdictions worldwide
+
+3. NO LIABILITY
+   The authors, contributors, and copyright holders are NOT responsible for:
+   - Any misuse of this software
+   - Any damage caused by this software
+   - Any illegal activities performed with this software
+   - Any consequences arising from the use of this software
+
+4. ASSUMPTION OF RISK
+   You use this software entirely at your own risk. The authors make no
+   guarantees about the software's fitness for any particular purpose.
+
+5. INTENDED USE CASES
+   This tool should ONLY be used for:
+   - Authorized penetration testing with written permission
+   - Security research on systems you own
+   - Educational purposes in controlled lab environments
+   - Security hardening validation of your own infrastructure
+
+6. PROFESSIONAL RESPONSIBILITY
+   If you are a security professional, you are expected to follow your
+   organization's policies and applicable laws regarding security testing.
+
+================================================================================
+
+By downloading, installing, or using WPStabber, you acknowledge that you have
+read, understood, and agree to be bound by this license and disclaimer.
+
+If you do not agree to these terms, do not use this software.
