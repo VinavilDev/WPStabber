@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/python-3.8+-green" alt="python" />
   <br>
   <em>WordPress Stress Testing Framework for Security Hardening.
-    <br>Multi-vector attack simulation with Cloudflare bypass capabilities.</em>
+    <br>Multi-vector testing tool with Cloudflare bypass capabilities.</em>
   <br>
 </p>
 
